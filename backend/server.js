@@ -13,6 +13,7 @@ dotenv.config();
 connectDB();
 
 const app = express();
+const cookieParser = require('cookie-parser');
 
 // ✅ CORS CONFIG (IMPORTANT FIX)
 app.use(cors({
@@ -22,6 +23,7 @@ app.use(cors({
 
 // Middleware
 app.use(express.json());
+app.use(cookieParser());
 
 // Tactical Debug Logger
 app.use((req, res, next) => {
