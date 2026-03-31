@@ -14,8 +14,13 @@ connectDB();
 
 const app = express();
 
+// ✅ CORS CONFIG (IMPORTANT FIX)
+app.use(cors({
+    origin: ["https://tourist-management-system-three.vercel.app"],
+    credentials: true
+}));
+
 // Middleware
-app.use(cors());
 app.use(express.json());
 
 // Tactical Debug Logger
@@ -24,7 +29,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// Main Routes
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/tickets', ticketRoutes);
