@@ -14,7 +14,7 @@ dotenv.config();
 
 const seedData = async () => {
     try {
-        await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/tms');
+        await mongoose.connect(process.env.MONGO_URI || 'mongodb://suswot69_db_user:<db_password>@ac-i9lkxfe-shard-00-00.u3oivzc.mongodb.net:27017,ac-i9lkxfe-shard-00-01.u3oivzc.mongodb.net:27017,ac-i9lkxfe-shard-00-02.u3oivzc.mongodb.net:27017/tms?ssl=true&replicaSet=atlas-xmcknr-shard-0&authSource=admin&appName=safarsafe');
         console.log('--- REBOOTING NATIONAL COMMAND DATABASE (400 RECORD INGESTION) ---');
 
         await Tourist.deleteMany();
