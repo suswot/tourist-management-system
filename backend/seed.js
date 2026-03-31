@@ -14,7 +14,7 @@ dotenv.config();
 
 const seedData = async () => {
     try {
-        await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/tourist_management');
+        await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/tms');
         console.log('--- REBOOTING NATIONAL COMMAND DATABASE (400 RECORD INGESTION) ---');
 
         await Tourist.deleteMany();

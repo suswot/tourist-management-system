@@ -5,7 +5,7 @@ dotenv.config();
 
 const checkUsers = async () => {
     try {
-        await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/tourist_management');
+        await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/tms');
         const users = await User.find({});
         console.log('Users in DB:', users.map(u => ({ email: u.email, role: u.role, zone: u.zone })));
         process.exit();
