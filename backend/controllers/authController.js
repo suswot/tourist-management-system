@@ -10,7 +10,7 @@ const signToken = (user) => {
         name: user.name,
         email: user.email
     };
-    return jwt.sign(payload, process.env.JWT_SECRET || 'change-me-in-prod', { expiresIn: '12h' });
+    return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '12h' });
 };
 
 const login = async (req, res) => {
@@ -24,12 +24,19 @@ const login = async (req, res) => {
         const isMatch = await bcrypt.compare(password || '', user.passwordHash);
         if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
 
-        // Allow caller to set operational zone if provided; otherwise default to user.zone
         const sessionZone = zone || user.zone;
         const token = signToken({ ...user.toObject(), zone: sessionZone });
 
-        res.json({
-            token,
+        // Send token in cookie (works cross-device)
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: true,      // HTTPS required for Render + Vercel
+            sameSite: "None",  // cross-origin
+            maxAge: 12 * 60 * 60 * 1000 // 12 hours
+        });
+
+        res.status(200).json({
+            message: "Login successful",
             user: {
                 id: user._id,
                 name: user.name,
@@ -39,6 +46,7 @@ const login = async (req, res) => {
             }
         });
     } catch (err) {
+        console.error("[AUTH-ERROR]", err);
         res.status(500).json({ message: err.message });
     }
 };
