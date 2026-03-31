@@ -1,65 +1,96 @@
-import React, { useState, useEffect } from 'react';
-import { Activity, ShieldAlert, Users, Radio, MapPin, ExternalLink } from 'lucide-react';
+import React from 'react';
+import { Users, AlertCircle, ShieldCheck, Zap, Activity, Signal, ShieldAlert, Cpu } from 'lucide-react';
 
-const OperationsCockpit = ({ tourists, setActiveTab, role }) => {
-    // Simulated values based on passed in tourist data
-    const activeTourists = tourists.length;
-    const securityRisks = tourists.filter(t => t.policeStatus === 'Security Risk').length;
-    const activeSOS = tourists.filter(t => t.sosActive).length;
+const OperationsCockpit = ({ tourists, role, zone }) => {
+    const verifiedCount = tourists.filter(t => t.status === 'Verified').length;
+    const activeSOSEvents = tourists.filter(t => t.sosActive).length;
+    const riskFactor = tourists.filter(t => t.policeStatus === 'Flagged' || t.policeStatus === 'Security Risk').length;
+    const vipInSector = tourists.filter(t => t.is_VIP).length;
+
+    const safePercentage = tourists.length === 0 ? 0 : ((verifiedCount / tourists.length) * 100);
+    const stats = [
+        { 
+            label: 'Sector Personnel', 
+            value: tourists.length, 
+            icon: Users, 
+            color: 'text-ashoka', 
+            bg: 'bg-ashoka/5',
+            trend: 'Live'
+        },
+        { 
+            label: 'Identities Verified', 
+            value: verifiedCount, 
+            icon: ShieldCheck, 
+            color: 'text-emerald-600', 
+            bg: 'bg-emerald-50',
+            trend: `${safePercentage.toFixed(0)}%`
+        },
+        { 
+            label: 'Strategic Risks', 
+            value: riskFactor, 
+            icon: AlertCircle, 
+            color: 'text-red-600', 
+            bg: 'bg-red-50',
+            trend: riskFactor > 5 ? 'Elevated' : 'Stable'
+        },
+        { 
+            label: 'Sector VIPs', 
+            value: vipInSector, 
+            icon: Zap, 
+            color: 'text-saffron', 
+            bg: 'bg-saffron/5',
+            trend: 'Priority'
+        },
+    ];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-            {/* Active Tourists Pulse */}
-            <div
-                onClick={() => setActiveTab('identity')}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex items-center justify-between group cursor-pointer hover:border-blue-200 transition-colors"
-            >
-                <div>
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1">
-                        Active Profiles <ExternalLink className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-blue-500" />
-                    </h3>
-                    <p className="text-3xl font-bold text-ashoka mt-1">{activeTourists}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {stats.map((stat, idx) => (
+                <div key={idx} className="bento-card relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-transparent to-slate-50 border-bl rounded-bl-3xl opacity-50"></div>
+                    <div className="relative z-10 flex flex-col gap-4">
+                        <div className="flex items-center justify-between">
+                            <div className={`p-2.5 rounded-xl ${stat.bg}`}>
+                                <stat.icon className={`w-5 h-5 ${stat.color}`} />
+                            </div>
+                            <div className="flex flex-col items-end">
+                                <span className="text-[10px] font-black text-slate-400 tracking-widest uppercase">{stat.trend}</span>
+                                <div className={`w-2 h-2 rounded-full ${stat.color} animate-pulse`}></div>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="text-2xl font-black text-ashoka -mb-1">{stat.value}</h3>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">{stat.label}</p>
+                        </div>
+                        <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden mt-1 opacity-50 group-hover:opacity-100 transition-opacity">
+                             <div className={`h-full ${stat.color.replace('text', 'bg')}`} style={{ width: '40%' }}></div>
+                        </div>
+                    </div>
                 </div>
-                <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center relative">
-                    <span className="absolute inline-flex h-full w-full rounded-full bg-ashoka opacity-10 animate-ping"></span>
-                    <Users className="h-6 w-6 text-ashoka relative" />
+            ))}
+
+            {/* Live Operational Ticker Bar */}
+            <div className="col-span-1 md:col-span-2 lg:col-span-4 bg-ashoka text-white/90 p-4 rounded-3xl flex items-center justify-between overflow-hidden relative shadow-lg shadow-ashoka/20">
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
+                <div className="flex items-center gap-6 relative z-10">
+                    <div className="flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/10">
+                        <Signal className="w-3 h-3 text-emerald-400 animate-pulse" />
+                        <span className="text-[9px] font-black uppercase tracking-widest">Nodal Synchronisation Active</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                         <Cpu className="w-4 h-4 text-saffron" />
+                         <p className="text-[10px] font-bold uppercase tracking-widest leading-none">
+                             <span className="text-white/40">Lat: {zone || 'North'} Sector | </span> Processor: Distributed Grid | <span className="text-emerald-400">Status: Nominal</span>
+                         </p>
+                    </div>
+                </div>
+                <div className="hidden lg:flex items-center gap-2 px-4 border-l border-white/10">
+                    <Activity className="w-4 h-4 text-white/40" />
+                    <marquee className="w-64 text-[10px] font-bold uppercase tracking-widest">
+                        {activeSOSEvents > 0 ? `🚨 ACTIVE SOS DETECTED IN ${zone || 'ALL'} COMMAND AREAS` : `Intelligence update complete. All sectors reporting normal tourist distribution patterns.`}
+                    </marquee>
                 </div>
             </div>
-
-            {/* Security Risks Pulse */}
-            <div
-                onClick={() => ['Police', 'Tourism_Manager'].includes(role) ? setActiveTab('cctns') : null}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex items-center justify-between group cursor-pointer hover:border-gray-300 transition-colors"
-            >
-                <div>
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1">
-                        Security Risks {['Police', 'Tourism_Manager'].includes(role) && <ExternalLink className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-gray-600" />}
-                    </h3>
-                    <p className={`text-3xl font-bold mt-1 ${securityRisks > 0 ? 'text-gray-800' : 'text-gray-400'}`}>{securityRisks}</p>
-                </div>
-                <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
-                    <ShieldAlert className={`h-6 w-6 ${securityRisks > 0 ? 'text-gray-800' : 'text-gray-400'}`} />
-                </div>
-            </div>
-
-            {/* Active SOS Blinker widget */}
-            <div
-                onClick={() => ['Police', 'Tourism_Manager'].includes(role) ? setActiveTab('cctns') : null}
-                className={`rounded-xl shadow-sm border p-5 flex items-center justify-between transition-colors group cursor-pointer ${activeSOS > 0 ? 'bg-red-50 border-red-200 hover:border-red-400' : 'bg-white border-gray-200 hover:border-gray-300'}`}
-            >
-                <div>
-                    <h3 className={`text-sm font-semibold uppercase tracking-wider flex items-center gap-1 ${activeSOS > 0 ? 'text-red-600' : 'text-gray-500'}`}>
-                        Active SOS {['Police', 'Tourism_Manager'].includes(role) && <ExternalLink className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-red-500" />}
-                    </h3>
-                    <p className={`text-3xl font-bold mt-1 ${activeSOS > 0 ? 'text-red-700' : 'text-gray-400'}`}>{activeSOS}</p>
-                </div>
-                <div className={`h-12 w-12 rounded-full flex items-center justify-center relative ${activeSOS > 0 ? 'bg-red-100' : 'bg-gray-50'}`}>
-                    {activeSOS > 0 && <span className="absolute inline-flex h-full w-full rounded-full bg-saffron opacity-40 animate-ping"></span>}
-                    <Radio className={`h-6 w-6 relative ${activeSOS > 0 ? 'text-saffron animate-pulse' : 'text-gray-400'}`} />
-                </div>
-            </div>
-
         </div>
     );
 };

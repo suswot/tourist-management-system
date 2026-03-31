@@ -13,12 +13,12 @@ const createTicket = async (req, res) => {
 // Get tickets based on receiver role (e.g. Police sees Police_Forward, Booking Site sees Logistics_Dispute)
 const getTickets = async (req, res) => {
     try {
-        const { role } = req.query; // 'Police', 'Booking_Site', 'Manager'
+        const role = req.user?.role;
 
         let query = {};
-        if (role === 'Police') query.receiverRole = 'Police';
-        else if (role === 'Booking_Site') query.receiverRole = 'Booking_Site';
-        else if (role === 'Manager') query.senderRole = 'Tourism_Manager';
+        if (role === 'National_Admin' || role === 'Regional_Admin') query.senderRole = 'Tourism_Manager';
+        else if (role === 'Zone_Manager') query.receiverRole = 'Police';
+        else if (role === 'VIP_Liaison') query.receiverRole = 'Booking_Site';
 
         const tickets = await Ticket.find(query).sort({ createdAt: -1 });
         res.json(tickets);

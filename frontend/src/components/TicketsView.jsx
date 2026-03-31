@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { toast } from 'react-hot-toast';
+import api from '../utils/api';
 import { Ticket, CheckCircle, Clock } from 'lucide-react';
 
 const TicketsView = ({ role }) => {
@@ -10,8 +10,7 @@ const TicketsView = ({ role }) => {
     useEffect(() => {
         const fetchTickets = async () => {
             try {
-                // In a real app we'd pass token with role, here we just pass role as param
-                const response = await axios.get(`http://localhost:5000/api/tickets?role=${role}`);
+                const response = await api.get('/api/tickets');
                 setTickets(response.data);
             } catch (error) {
                 console.error('Error fetching tickets:', error);
@@ -26,7 +25,7 @@ const TicketsView = ({ role }) => {
 
     const handleAcknowledge = async (id) => {
         try {
-            await axios.patch(`http://localhost:5000/api/tickets/${id}`, { status: 'In Progress' });
+            await api.patch(`/api/tickets/${id}`, { status: 'In Progress' });
             setTickets(prev => prev.map(t => t._id === id ? { ...t, status: 'In Progress' } : t));
             toast.success("Ticket Acknowledged");
         } catch (error) {

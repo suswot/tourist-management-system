@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, KeyRound, Fingerprint, MapPin, Building2, UserCog } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import api from '../utils/api';
 
 const LoginPage = ({ setRole, setZone }) => {
     const navigate = useNavigate();
@@ -11,35 +12,28 @@ const LoginPage = ({ setRole, setZone }) => {
     const [selectedZone, setSelectedZone] = useState('North');
     const [loading, setLoading] = useState(false);
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
-
-        let evaluatedRole = 'Zone_Manager';
-
-        const checkId = idNumber.toUpperCase();
-        if (checkId.startsWith('VIP')) {
-            evaluatedRole = 'VIP_Liaison';
-        } else if (checkId.startsWith('REG')) {
-            evaluatedRole = 'Regional_Admin';
-        } else if (checkId.startsWith('NAT')) {
-            evaluatedRole = 'National_Admin';
-        } else {
-            evaluatedRole = 'Zone_Manager';
-        }
-
-        setRole(evaluatedRole);
-        setZone(selectedZone);
-
-        setTimeout(() => {
+        try {
+            const response = await api.post('/api/auth/login', {
+                email: idNumber,
+                password,
+                zone: selectedZone
+            });
+            const { token, user } = response.data;
+            localStorage.setItem('token', token);
+            localStorage.setItem('role', user.role);
+            localStorage.setItem('zone', user.zone);
+            setRole(user.role);
+            setZone(user.zone);
+            toast.success('Authentication Successful');
+            navigate('/dashboard');
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Invalid credentials');
+        } finally {
             setLoading(false);
-            if (idNumber.length > 3 && password.length > 3) {
-                toast.success("Authentication Successful");
-                navigate('/dashboard');
-            } else {
-                toast.error("Invalid Security Credentials");
-            }
-        }, 2000);
+        }
     };
 
     return (
@@ -104,7 +98,7 @@ const LoginPage = ({ setRole, setZone }) => {
                     <form className="space-y-5" onSubmit={handleLogin}>
                         <div>
                             <label className="block text-xs font-black uppercase tracking-wider text-gray-500 mb-1.5">
-                                Token / Access ID
+                                 Official Email / Access ID
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -114,31 +108,31 @@ const LoginPage = ({ setRole, setZone }) => {
                                     type="text"
                                     required
                                     className="block w-full pl-10 border-gray-300 rounded focus:ring-ashoka focus:border-ashoka p-3 sm:text-sm bg-gray-50 hover:bg-white transition-colors border"
-                                    placeholder={activeTab === 'AUTHORITY' ? "e.g. ZONE-MGR-94 or VIP-SEC-99" : "e.g. NAT-ADMIN-01 or REG-ADMIN-09"}
+                                     placeholder={activeTab === 'AUTHORITY' ? "e.g. zone@tms.gov.in" : "e.g. national@tms.gov.in"}
                                     value={idNumber}
                                     onChange={(e) => setIdNumber(e.target.value)}
                                 />
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-xs font-black uppercase tracking-wider text-gray-500 mb-1.5">
-                                Secure Password
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <KeyRound className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    type="password"
-                                    required
-                                    className="block w-full pl-10 border-gray-300 rounded focus:ring-ashoka focus:border-ashoka p-3 sm:text-sm bg-gray-50 hover:bg-white transition-colors border"
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                />
-                            </div>
-                        </div>
+                         <div>
+                             <label className="block text-xs font-black uppercase tracking-wider text-gray-500 mb-1.5">
+                                 Secure Password
+                             </label>
+                             <div className="relative">
+                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                     <KeyRound className="h-5 w-5 text-gray-400" />
+                                 </div>
+                                 <input
+                                     type="password"
+                                     required
+                                     className="block w-full pl-10 border-gray-300 rounded focus:ring-ashoka focus:border-ashoka p-3 sm:text-sm bg-gray-50 hover:bg-white transition-colors border"
+                                     placeholder="••••••••"
+                                     value={password}
+                                     onChange={(e) => setPassword(e.target.value)}
+                                 />
+                             </div>
+                         </div>
 
                         <div>
                             <label className="block text-xs font-black uppercase tracking-wider text-gray-500 mb-1.5">
@@ -181,41 +175,6 @@ const LoginPage = ({ setRole, setZone }) => {
                             </button>
                         </div>
                     </form>
-
-                    {/* TEMPORARY TESTING BYPASS */}
-                    <div className="mt-8 pt-6 border-t border-gray-200">
-                        <div className="text-center mb-4">
-                            <span className="bg-red-100 text-red-600 px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded">
-                                Developer Debug Bypass
-                            </span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                            <button
-                                onClick={() => { setRole('Zone_Manager'); setZone(selectedZone); navigate('/dashboard'); }}
-                                className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 text-[10px] font-bold uppercase rounded border border-gray-300"
-                            >
-                                Jump to Zone Manager
-                            </button>
-                            <button
-                                onClick={() => { setRole('VIP_Liaison'); setZone(selectedZone); navigate('/dashboard'); }}
-                                className="bg-black hover:bg-gray-900 text-yellow-500 p-2 text-[10px] font-bold uppercase rounded border border-gray-800"
-                            >
-                                Jump to VIP Liaison
-                            </button>
-                            <button
-                                onClick={() => { setRole('Regional_Admin'); setZone(selectedZone); navigate('/dashboard'); }}
-                                className="bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 p-2 text-[10px] font-bold uppercase rounded"
-                            >
-                                Jump to Regional Admin
-                            </button>
-                            <button
-                                onClick={() => { setRole('National_Admin'); setZone(selectedZone); navigate('/dashboard'); }}
-                                className="bg-saffron text-white hover:bg-orange-600 p-2 text-[10px] font-bold uppercase rounded shadow-sm"
-                            >
-                                Jump to National Admin
-                            </button>
-                        </div>
-                    </div>
 
                 </div>
             </div>
